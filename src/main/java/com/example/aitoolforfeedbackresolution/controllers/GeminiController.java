@@ -1,8 +1,10 @@
 package com.example.aitoolforfeedbackresolution.controllers;
 
+import com.example.aitoolforfeedbackresolution.services.GeminiService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -10,8 +12,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -26,6 +26,9 @@ public class GeminiController{
     // Inject the API key from environment variables or application.properties
     @Value("${GOOGLE_API_KEY}")
     private String geminiApiKey;
+
+    @Autowired
+    private GeminiService geminiService;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -98,5 +101,12 @@ public class GeminiController{
             e.printStackTrace(); // Print stack trace for debugging
             return new ResponseEntity<>("An internal error occurred while communicating with Gemini API: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> testSql() {
+        String query = "SELECT ERROR_MESSAGE, FAIL_REASN, RESPONSE_CODE FROM LOG_ERROR WHERE XML LIKE \"%47719642%\"";
+        String data = geminiService.getData(query);
+        return new ResponseEntity<>(data, HttpStatus.OK);
     }
 }
