@@ -1,6 +1,7 @@
 package com.example.aitoolforfeedbackresolution.controllers;
 
 import com.example.aitoolforfeedbackresolution.services.GeminiService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -30,6 +31,8 @@ public class GeminiController{
     @Autowired
     private GeminiService geminiService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
     String prompt = "You are an expert SQL generator. You will be given a SQL table schema, some column significance, and a user query in natural language. Your task is to generate the best possible SQL query that retrieves the requested data.   Table Name:   LOG_ERROR   Table Schema:   SNO (BIGINT) → Auto increment primary key   XML_GUID (VARCHAR) → Unique identifier for the XML   IN_OUT (VARCHAR) → Direction of message (IN/OUT)   DATE_TIME (DATETIME) → Timestamp of the record   XML (TEXT) → Request XML sent for syncing   RESPONSE_XML (TEXT) → Response XML from ERP   ERROR_MESSAGE (TEXT) → Error message if any issue occurs   FAIL_REASN (TEXT) → If failed, contains failure reason; if success → \"success-\"   MAIN_ID_XML (VARCHAR) → Contains profileId or companyId if available   RESPONSE_CODE (INT) → 200 = success, 400/500 = error   Column Significance:   XML → Contains profileId (SumsUserID) inside XML   RESPONSE_XML → Contains ERP response (including success/failure)   ERROR_MESSAGE → Error details   FAIL_REASN → Additional reason for failure or \"success-\" if successful   RESPONSE_CODE → 200 = success, otherwise failure eg.     SNO: 128217452      XML_GUID: f4f00e27-d687-4bd2-9fd0-4a60b8c720b3        IN_OUT: OUT     DATE_TIME: 2025-08-22 00:00:23           XML: <?xml version=\"1.0\" encoding=\"UTF-8\"?> <WSRequest TransactionID=\"{f4f00e27-d687-4bd2-9fd0-4a60b8c720b3}\" UserID=\"nav\" RequestDate=\"2025-08-21T00:55:35\"><Object Type=\"Codeunit\" ID=\"50057\"><Codeunit><Trigger Name=\"SyncNAVCustomerModify\"><Parameter Name=\"SyncNAVCustomerXML\" Type=\"XML\"><SyncNAV ResponsibilityCenter=\"99 acres\"><Customer ActionType=\"MODIFY\"><SumsUserID>47719642</SumsUserID><Name>Deep Sagar</Name><ContactPerson>Deep Sagar</ContactPerson><Email>deepsagarsahoo04@gmail.com</Email><Address>BHUBANESWAR</Address><Class>BROKER</Class><City>Bhubaneswar</City><Mobile>9090013665</Mobile><Activated>Y</Activated><UserName>DEEPSAGARSAHOO04@GMAIL.COM</UserName><STD>674</STD><ISD>91</ISD><HomePage/><GST_REGISTERED>NO</GST_REGISTERED><No>CUST/5538539</No><International>FALSE</International><CountryCode>66</CountryCode></Customer></SyncNAV></Parameter></Trigger></Codeunit></Object></WSRequest>  RESPONSE_XML: <WSResponse Status=\"0\" TransactionID=\"{f4f00e27-d687-4bd2-9fd0-4a60b8c720b3}\"><ErrorDetail><Code>ERROR</Code><Message>The field Company Classification of table Contact contains a value (BROKER) that cannot be found in the related table (Contact Information Setup).</Message></ErrorDetail></WSResponse> ERROR_MESSAGE: ERR_INCORRECT_RESPONSE_RCVD    FAIL_REASN: The field Company Classification of table Contact contains a value (BROKER) that cannot be found in the related table (Contact Information Setup).-   MAIN_ID_XML: NULL RESPONSE_CODE: 400 1 row in set (0.00 sec)   Instructions for Query Generation (): 1. Choose between the defined use cases Case 1: input contains keywords like profile,navId,sumsId,CON/,CUST/,SumsUserID syncing issues Case 2: input contains keywords liek transaction,SO,99A/ syncing issues Based on query choose a use case , and bases on use case select the variable value from the query input i.e if profile 1234234 get make a query based on below rules for each use cases;   For All Use cases select try to filter by input if provided. Query LOG_ERROR table  with like statement for '%variablevalue%' on XML columnfrom the query input. if DATE_TIME is not specified the take it as current date. all columns should be selected ignore MAIN_ID_XML   User query: \uD83D\uDC49 Hi rohan,ashrah not 47719642 is not getting modified  ";
 
     private final RestTemplate restTemplate = new RestTemplate();
@@ -89,7 +92,8 @@ public class GeminiController{
                     if (parts != null && !parts.isEmpty()) {
                         String generatedText = (String) parts.get(0).get("text");
                         String result = geminiService.getData(generatedText);
-                        return new ResponseEntity<>(result, HttpStatus.OK);
+                        String jsonText = objectMapper.writeValueAsString(result);
+                        return new ResponseEntity<>(jsonText, HttpStatus.OK);
                     }
                 }
                 // If no content is found or structure is unexpected
