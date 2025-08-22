@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Feedback Resolution Chat</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1><i class="fas fa-robot"></i> AI Feedback Resolution Assistant</h1>
+            <p>Ask questions about your LOG_ERROR data and get SQL-powered insights</p>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                <div class="message-content">
+                    <i class="fas fa-robot"></i>
+                    <div class="text">
+                        Hello! I'm your AI assistant. I can help you analyze your LOG_ERROR data and generate SQL queries. 
+                        Ask me anything about your data, and I'll provide insights and run the appropriate queries.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <div class="input-wrapper">
+                <input type="text" id="userInput" placeholder="Ask a question about your data..." maxlength="500">
+                <button id="sendButton" class="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="input-hint">
+                <small>Examples: "Show me all errors for profile 47719642", "What are the recent sync failures?", "Find transactions with response code 400"</small>
+            </div>
+        </div>
+        
+        <div class="loading-indicator" id="loadingIndicator" style="display: none;">
+            <div class="spinner"></div>
+            <span>AI is thinking...</span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
