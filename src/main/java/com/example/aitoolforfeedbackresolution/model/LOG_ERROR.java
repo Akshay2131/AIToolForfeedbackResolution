@@ -38,6 +38,7 @@ public class LOG_ERROR {
     private String failReason;
 
     @Column(name = "MAIN_ID_XML")
+    @Transient
     private String mainIdXml;
 
     @Column(name = "RESPONSE_CODE")

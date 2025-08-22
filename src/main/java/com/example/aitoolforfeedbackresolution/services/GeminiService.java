@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class GeminiService{
@@ -26,32 +28,40 @@ public class GeminiService{
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    public static String getFullQuery(String sqlString) {
+        String cleanString = sqlString.replace("```sql", "");
+        cleanString = cleanString.replace("```", "");
+        return cleanString.trim();
+    }
+
+
     public String getData(String queryToRun){
         if (queryToRun == null || queryToRun.trim().isEmpty()) {
             return errorJson("Empty query provided");
         }
 
-        String normalized = queryToRun.trim().toLowerCase();
-        if (!normalized.startsWith("select")) {
-            return errorJson("Only SELECT queries are allowed");
-        }
-        if (!normalized.contains(" from ")) {
-            return errorJson("Malformed SELECT query: missing FROM clause");
-        }
-        if (!normalized.contains("log_error")) {
-            return errorJson("Query must target LOG_ERROR table");
-        }
+        String normalized = queryToRun.trim();
+        normalized = getFullQuery(normalized);
+//        if (!normalized.startsWith("select") || !) {
+//            return errorJson("Only SELECT queries are allowed");
+//        }
+//        if (!normalized.contains(" from ")) {
+//            return errorJson("Malformed SELECT query: missing FROM clause");
+//        }
+//        if (!normalized.contains("log_error")) {
+//            return errorJson("Query must target LOG_ERROR table");
+//        }
 
         try {
             // Try mapping to entity first for full-entity selects
             List<?> results;
             try {
-                Query entityQuery = entityManager.createNativeQuery(queryToRun, LOG_ERROR.class);
+                Query entityQuery = entityManager.createNativeQuery(normalized, LOG_ERROR.class);
                 results = entityQuery.getResultList();
                 return toJson(results);
             } catch (Exception mappingFailure) {
                 // Fallback to untyped native query (likely scalar or partial column selection)
-                Query nativeQuery = entityManager.createNativeQuery(queryToRun);
+                Query nativeQuery = entityManager.createNativeQuery(normalized);
                 List<?> raw = nativeQuery.getResultList();
                 return toJsonUntyped(raw);
             }
